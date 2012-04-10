@@ -54,9 +54,3 @@ for (var s in Card.SUITS) {
     Card.DECK.push(n + s);
   }  
 }
-
-var _ = require('underscore');
-
-var cards = _.shuffle(Card.DECK).slice(0, 7);
-
-console.log(cards, wrapper.evalCards(cards));

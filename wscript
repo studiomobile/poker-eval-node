@@ -15,5 +15,5 @@ def configure(conf):
 def build(bld):
   obj = bld.new_task_gen('cxx', 'shlib', 'node_addon')
   obj.target = 'wrapper'
-  obj.source = ['src/wrapper.cc', 'src/hand.cc']
+  obj.source = ['src/wrapper.cc']
   obj.uselib = ['LIB_PE']

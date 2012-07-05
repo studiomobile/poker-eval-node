@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+var readline  = require('readline');
+var Hand      = require('../lib/hand');
+
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+
+rl.on('line', function(line) {
+  var cards = line.trim().split(/\s+/);
+  var hand  = Hand(cards);
+  rl.write(JSON.stringify({v:hand.value, t:hand.type, s:hand.sig}));
+});

@@ -19,7 +19,7 @@
     "poker-eval": "./bin/poker-eval"
   }
   , "scripts": {
-      "preinstall" : "node-waf configure && node-waf build"
-    , "preuninstall" : "rm -rf build/*"
+      "preinstall" : "node-gyp configure build"
+    , "preuninstall" : "node-gyp clean"
   }
 }

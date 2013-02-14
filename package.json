@@ -2,7 +2,7 @@
     "author": "Sergey Martynov"
   , "name": "poker-eval"
   , "description": "Node.js wrapper for poker-eval library"
-  , "version": "0.3.1"
+  , "version": "0.3.2"
   , "homepage": "https://github.com/martynovs/poker-eval-node"
   , "repository": {
       "type": "git"

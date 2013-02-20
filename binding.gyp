@@ -6,7 +6,8 @@
         "src/wrapper.cc"
       ],
       "include_dirs": [
-        "/usr/local/include/poker-eval"
+        "/usr/local/include/poker-eval",
+        "/usr/include/poker-eval"
       ],
       "libraries": [
         "<!@(pkg-config --libs poker-eval)",

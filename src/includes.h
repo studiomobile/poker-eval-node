@@ -1,6 +1,8 @@
-#ifndef __POKER_EVAL_H__
-#define __POKER_EVAL_H__
+#ifndef __INCLUDES_H__
+#define __INCLUDES_H__
 
+#include <node.h>
+#include <v8.h>
 #include <stdint.h>
 
 typedef uint8_t  uint8;
@@ -10,6 +12,8 @@ typedef uint32_t uint32;
 #include <poker-eval/handval.h>
 #include <poker-eval/game_std.h>
 #include <poker-eval/inlines/eval.h>
+#include <poker-eval/enumdefs.h>
 
+using namespace v8;
 
-#endif // __POKER_EVAL_H__
+#endif // __INCLUDES_H__

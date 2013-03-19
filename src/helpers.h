@@ -1,18 +1,24 @@
 #ifndef __HELPERS_H__
 #define __HELPERS_H__
 
-#define EXPAND_ARGS(args, var, code) \
-for (int i = 0; i < args.Length(); ++i) { \
-  if (args[i]->IsArray()) { \
-    Local<Array> __arr = Array::Cast(*args[i]); \
-    for (uint32_t __n = 0; __n < __arr->Length(); ++__n) { \
-      var = __arr->Get(__n); \
-      code; \
-    } \
-  } else { \
-    var = args[i]; \
-    code; \
-  } \
-}
 
-#endif
+#define TYPE_ERROR(message) { ThrowException(Exception::TypeError(String::New(message))); return scope.Close(Undefined()); }
+
+
+#define READ_CARD_MASK(cards, pocket, count) \
+  for (uint32_t __i = 0; __i < cards->Length(); ++__i) { \
+    int __card; String::AsciiValue __ascii(cards->Get(__i)); \
+    if (Deck_stringToCard(*__ascii, &__card) && !CardMask_CARD_IS_SET(pocket, __card)) { \
+      CardMask_SET(pocket, __card); ++count; \
+    } }
+
+
+#define READ_CARD_MASK_DEAD(cards, pocket, dead, count) \
+  for (uint32_t __i = 0; __i < cards->Length(); ++__i) { \
+    int __card; String::AsciiValue __ascii(cards->Get(__i)); \
+    if (Deck_stringToCard(*__ascii, &__card) && !CardMask_CARD_IS_SET(dead, __card)) { \
+      CardMask_SET(pocket, __card); CardMask_SET(dead, __card); ++count; \
+    } }
+
+
+#endif // __HELPERS_H__

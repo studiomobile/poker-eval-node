@@ -42,11 +42,6 @@ Handle<Value> KnownGames(const Arguments& args)
   HandleScope scope;
   size_t totalGames = sizeof(knownGames)/sizeof(knownGames[0]);
 
-  Handle<Array> array = Array::New(totalGames);
-  if (array.IsEmpty()) {
-    return scope.Close(Undefined());
-  }
-
   Handle<String> typeStr    = String::NewSymbol("type");
   Handle<String> nameStr    = String::NewSymbol("name");
   Handle<String> hiStr      = String::NewSymbol("hi");
@@ -55,6 +50,7 @@ Handle<Value> KnownGames(const Arguments& args)
   Handle<String> minHandStr = String::NewSymbol("minHand");
   Handle<String> maxHandStr = String::NewSymbol("maxHand");
 
+  Handle<Array> array = Array::New(totalGames);
   for (size_t i = 0; i < totalGames; ++i)
   {
     known_game_t game = knownGames[i];

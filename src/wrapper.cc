@@ -1,6 +1,9 @@
+#include "game.h"
 #include "game_enum.h"
+#include "game_eval.h"
 #include "helpers.h"
 #include <poker-eval/inlines/eval.h>
+
 
 #define ADD_CARD(c) if (index < _cards->Length()) _cards->Set(index++, Integer::NewFromUnsigned(c))
 
@@ -37,6 +40,7 @@ void initModule(Handle<Object> target)
   NODE_SET_METHOD(target, "evalCards", EvalCards);
   NODE_SET_METHOD(target, "knownGames", KnownGames);
   NODE_SET_METHOD(target, "enumGame", EnumGame);
+  NODE_SET_METHOD(target, "evalGame", EvalGame);
 }
 
 NODE_MODULE(wrapper, initModule)

@@ -63,11 +63,11 @@ Handle<Value> EnumGame(const Arguments& args)
     Local<Value> item = _pockets->Get(i);
     if (!item->IsArray()) TYPE_ERROR("Player pocket should be array of cards");
     Local<Array> pocket = Local<Array>::Cast(item);
-    READ_CARD_MASK_DEAD(pocket, pockets[i], dead, _count);
+    READ_CARD_MASK_WITH_COLLECTOR(pocket, pockets[i], dead, _count);
   }
 
   Local<Array> _board = Local<Array>::Cast(args[2]);
-  READ_CARD_MASK_DEAD(_board, board, dead, on_board);
+  READ_CARD_MASK_WITH_COLLECTOR(_board, board, dead, on_board);
   if (on_board > game->maxboard) TYPE_ERROR("Too many cards on board");
 
   if (samples > 0) {

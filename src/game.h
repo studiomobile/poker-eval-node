@@ -5,6 +5,6 @@
 
 enum_gameparams_t* findGame(const char *gameId);
 
-Handle<Value> EnumGame(const Arguments& args);
+Handle<Value> KnownGames(const Arguments& args);
 
 #endif // __GAME_H__

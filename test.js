@@ -3,12 +3,12 @@ var _    = require('underscore')
 
 
 var deck  = _.shuffle(lib.Card.DECK)
+  , type = 'holdem8'
   , nplayers = 5
   , inHand = 2
   , onBoard = 3
-  , dead = 0
+  , total = 5
   , board = deck.splice(0, onBoard)
-  , dead = deck.splice(0, dead)
   , players = []
   , samples = 100000
 
@@ -19,14 +19,32 @@ for (var i = 0; i < nplayers; i++) {
 
 // console.log(lib.knownGames());
 
-var result = lib.enumGame("holdem", players, board, {dead:dead, samples:samples});
+var result = lib.enumGame(type, players, board, {samples:samples});
 
 for (var i = result.length - 1; i >= 0; i--) {
   var hand = new lib.Hand(players[i], board);
   hand.type = lib.Hand.Types[hand.type];
-  result[i].cards = players[i];
+  hand.cards = players[i].join(', ');
   result[i].hand  = hand;
 };
 
-console.log({board:board, dead:dead});
+result.unshift({board:board.join(', ')});
+console.log(result);
+
+board.push.apply(board, deck.splice(0, total - onBoard));
+result = lib.evalGame(type, players, board);
+
+function fillInfo(info) {
+  if (!info) return;
+  if (info.type != null) info.type = lib.Hand.Types[info.type]
+  if (info.sig)  info.sig  = info.sig.map(function(rank) { return lib.Card.NRANKS[rank]; }).join('');
+}
+
+for (var i = result.length - 1; i >= 0; i--) {
+  result[i].cards = players[i].join(', ');
+  fillInfo(result[i].hi);
+  fillInfo(result[i].lo);
+};
+
+result.unshift({board:board.join(', ')});
 console.log(result);

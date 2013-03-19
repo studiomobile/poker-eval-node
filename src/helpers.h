@@ -13,11 +13,11 @@
     } }
 
 
-#define READ_CARD_MASK_DEAD(cards, pocket, dead, count) \
+#define READ_CARD_MASK_WITH_COLLECTOR(cards, pocket, collector, count) \
   for (uint32_t __i = 0; __i < cards->Length(); ++__i) { \
     int __card; String::AsciiValue __ascii(cards->Get(__i)); \
-    if (Deck_stringToCard(*__ascii, &__card) && !CardMask_CARD_IS_SET(dead, __card)) { \
-      CardMask_SET(pocket, __card); CardMask_SET(dead, __card); ++count; \
+    if (Deck_stringToCard(*__ascii, &__card) && !CardMask_CARD_IS_SET(collector, __card)) { \
+      CardMask_SET(pocket, __card); CardMask_SET(collector, __card); ++count; \
     } }
 
 

@@ -5,6 +5,7 @@
       "sources": [
         "src/wrapper.cc",
         "src/game.cc",
+        "src/game_eval.cc",
         "src/game_enum.cc"
       ],
       "include_dirs": [

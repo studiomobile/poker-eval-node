@@ -3,8 +3,6 @@
 
 #include "includes.h"
 
-Handle<Value> KnownGames(const Arguments& args);
-
 Handle<Value> EnumGame(const Arguments& args);
 
 #endif // __GAME_ENUM_H__

@@ -11,7 +11,6 @@ typedef uint32_t uint32;
 #include <poker-eval/deck.h>
 #include <poker-eval/handval.h>
 #include <poker-eval/game_std.h>
-#include <poker-eval/inlines/eval.h>
 #include <poker-eval/enumdefs.h>
 
 using namespace v8;

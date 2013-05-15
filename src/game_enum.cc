@@ -70,7 +70,7 @@ Handle<Value> EnumGame(const Arguments& args)
   READ_CARD_MASK_WITH_COLLECTOR(_board, board, dead, on_board);
   if (on_board > game->maxboard) TYPE_ERROR("Too many cards on board");
 
-  if (samples > 0) {
+  if (samples > 0 && on_board < game->maxboard) {
     err = enumSample(game->game, pockets, board, dead, _pockets->Length(), on_board, samples, ordering, &result);
   } else {
     err = enumExhaustive(game->game, pockets, board, dead, _pockets->Length(), on_board, ordering, &result);

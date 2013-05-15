@@ -1,5 +1,6 @@
 #include "game.h"
 #include "game_enum.h"
+#include "hand_enum.h"
 #include "game_eval.h"
 #include "helpers.h"
 #include <poker-eval/inlines/eval.h>
@@ -40,6 +41,7 @@ void initModule(Handle<Object> target)
   NODE_SET_METHOD(target, "evalCards", EvalCards);
   NODE_SET_METHOD(target, "knownGames", KnownGames);
   NODE_SET_METHOD(target, "enumGame", EnumGame);
+  NODE_SET_METHOD(target, "enumHand", EnumHand);
   NODE_SET_METHOD(target, "evalGame", EvalGame);
 }
 

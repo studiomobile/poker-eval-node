@@ -3,10 +3,10 @@ var _    = require('underscore')
 
 
 var deck  = _.shuffle(lib.Card.DECK)
-  , type = 'holdem8'
-  , nplayers = 5
+  , type = 'holdem'
+  , nplayers = 7
   , inHand = 2
-  , onBoard = 3
+  , onBoard = 5
   , total = 5
   , board = deck.splice(0, onBoard)
   , players = []
@@ -47,4 +47,14 @@ for (var i = result.length - 1; i >= 0; i--) {
 };
 
 result.unshift({board:board.join(', ')});
+console.log(result);
+
+result = []
+for (var i = 2; i <= 5; ++i) {
+  b = i == 2 ? [] : board.slice(0, i);
+  res = lib.enumHand(type, players[0], b, players.length);
+  res.hand  = players[0].join(', ');
+  res.board = b;
+  result.push(res);
+}
 console.log(result);

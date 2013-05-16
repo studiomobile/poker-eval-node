@@ -2,6 +2,7 @@
 #include "game.h"
 #include "helpers.h"
 
+long cnk(int n, int k);
 
 Handle<Value> EnumHand(const Arguments& args)
 {
@@ -11,22 +12,6 @@ Handle<Value> EnumHand(const Arguments& args)
   if (args.Length() < 2 || !args[1]->IsArray())  TYPE_ERROR("Please provide player hand as second argument");
   if (args.Length() < 3 || !args[2]->IsArray())  TYPE_ERROR("Please provide board cards as third argument");
   if (args.Length() < 4 || !args[3]->IsNumber()) TYPE_ERROR("Please provide number of other players");
-
-  int players = 0;
-  int in_hand = 0;
-  int on_board = 0;
-  int are_dead = 0;
-  int poket_sizes[ENUM_MAXPLAYERS];
-  StdDeck_CardMask pockets[ENUM_MAXPLAYERS];
-  StdDeck_CardMask dead;
-  StdDeck_CardMask board;
-
-  StdDeck_CardMask_RESET(dead);
-  StdDeck_CardMask_RESET(board);
-
-  for (uint i = 0; i < ENUM_MAXPLAYERS; ++i) {
-    StdDeck_CardMask_RESET(pockets[i]);
-  }
 
   String::AsciiValue gameTypeStr(args[0]);
   enum_gameparams_t *game = findGame(*gameTypeStr);
@@ -39,18 +24,38 @@ Handle<Value> EnumHand(const Arguments& args)
       TYPE_ERROR("Game type is unsupported");
   }
 
+  int err = 0;
+  int ordering = 0;
+  int players = 0;
+  int samples = 100000;
+  int in_hand = 0;
+  int on_board = 0;
+  int are_dead = 0;
+  StdDeck_CardMask dead;
+  StdDeck_CardMask board;
+  StdDeck_CardMask pockets[ENUM_MAXPLAYERS];
+  int pocket_sizes[ENUM_MAXPLAYERS];
+
+  StdDeck_CardMask_RESET(dead);
+  StdDeck_CardMask_RESET(board);
+  for (uint i = 0; i < ENUM_MAXPLAYERS; ++i) {
+    StdDeck_CardMask_RESET(pockets[i]);
+    pocket_sizes[i] = game->maxpocket;
+  }
+
   Local<Array> pocket = Local<Array>::Cast(args[1]);
   READ_CARD_MASK_WITH_COLLECTOR(pocket, pockets[0], dead, in_hand);
   if (in_hand < game->minpocket) TYPE_ERROR("Too few cards in hand");
   if (in_hand > game->maxpocket) TYPE_ERROR("Too many cards in hand");
-
-  for (uint i = 0; i < ENUM_MAXPLAYERS; ++i) {
-    poket_sizes[i] = in_hand;
-  }
+  pocket_sizes[0] = game->maxpocket - in_hand;
 
   Local<Array> _board = Local<Array>::Cast(args[2]);
   READ_CARD_MASK_WITH_COLLECTOR(_board, board, dead, on_board);
   if (on_board > game->maxboard) TYPE_ERROR("Too many cards on board");
+
+  players = args[3]->IntegerValue();
+  if (players < 2) TYPE_ERROR("Should be at least 2 players in game");
+  if (players > ENUM_MAXPLAYERS) TYPE_ERROR("Too many players in game");
 
   Local<String> deadStr    = String::NewSymbol("dead");
   Local<String> samplesStr = String::NewSymbol("samples");
@@ -61,10 +66,6 @@ Handle<Value> EnumHand(const Arguments& args)
   Local<String> loseStr    = String::NewSymbol("lose");
   Local<String> tieStr     = String::NewSymbol("tie");
 
-  players = args[3]->IntegerValue();
-  if (players < 2) TYPE_ERROR("Should be at least 2 players in game");
-  if (players > ENUM_MAXPLAYERS) TYPE_ERROR("Too many players in game");
-
   if (args.Length() > 4 && args[4]->IsObject()) {
     Local<Object> opt = args[4]->ToObject();
     if (opt->HasOwnProperty(deadStr)) {
@@ -73,28 +74,45 @@ Handle<Value> EnumHand(const Arguments& args)
       Local<Array> _dead = Local<Array>::Cast(d);
       READ_CARD_MASK(_dead, dead, are_dead);
     }
+    if (opt->HasOwnProperty(samplesStr)) {
+      Local<Value> i = opt->Get(samplesStr);
+      if (!i->IsNumber()) TYPE_ERROR("Number of samples is not a number");
+      samples = i->IntegerValue();
+      if (samples <= 0) TYPE_ERROR("Number of samples should be positite");
+    }
   }
 
-  // TODO: find better scheme to calculate number of iterations
-  int exhausive = !(on_board < game->maxboard);
-  int handSamples = (players - 1) * 1000 * (exhausive ? 30 : 1);
-  int boardSamples = 700000 / handSamples;
-  int ordering = 0;
-  int err = 0;
+  long handSamples = 0;
+  long boardSamples = 0;
+  int in_deck = StdDeck_N_CARDS - in_hand - on_board - are_dead;
+  int deal_to_players = players * game->maxpocket - in_hand;
+  if (game->maxboard > on_board) {
+    handSamples = (players - 1) * 1000;
+    boardSamples = cnk(in_deck - deal_to_players, game->maxboard - on_board);
+    while (boardSamples * handSamples > samples) {
+      boardSamples /= 2;
+      handSamples /= 2;
+      if (!boardSamples) boardSamples = 1;
+      if (!handSamples)  handSamples = 1;
+    }
+  } else {
+    handSamples = cnk(in_deck, deal_to_players);
+    if (handSamples > samples) handSamples = samples;
+  }
 
   enum_result_t result;
   enumResultClear(&result);
   enum_result_t intermediate;
 
   int _players = players - 1;
-  int *_pocket_sizes = poket_sizes + 1;
+  int *_pocket_sizes = pocket_sizes + 1;
   StdDeck_CardMask *_pockets = pockets + 1;
 
   DECK_MONTECARLO_PERMUTATIONS_D(StdDeck, _pockets, _players, _pocket_sizes, dead, handSamples, {
-    if (exhausive) {
-      err = enumExhaustive(game->game, pockets, board, _used, players, on_board, ordering, &intermediate);
-    } else {
+    if (boardSamples > 0) {
       err = enumSample(game->game, pockets, board, _used, players, on_board, boardSamples, ordering, &intermediate);
+    } else {
+      err = enumExhaustive(game->game, pockets, board, _used, players, on_board, ordering, &intermediate);
     }
     if (err) TYPE_ERROR("Enumeration failed");
     result.ev[0] += intermediate.ev[0];
@@ -111,12 +129,9 @@ Handle<Value> EnumHand(const Arguments& args)
     }
   });
 
-
   Local<Object> info = Object::New();
-
   info->Set(equityStr, Number::New(result.ev[0] / result.nsamples));
   info->Set(samplesStr, Integer::NewFromUnsigned(result.nsamples));
-
   if (game->hashipot) {
     Local<Object> hi = Object::New();
     info->Set(hiStr, hi);
@@ -131,6 +146,25 @@ Handle<Value> EnumHand(const Arguments& args)
     lo->Set(tieStr, Integer::NewFromUnsigned(result.ntielo[0]));
     lo->Set(loseStr, Integer::NewFromUnsigned(result.nloselo[0]));
   }
-
   return scope.Close(info);
+}
+
+
+long cnk_table[StdDeck_N_CARDS][StdDeck_N_CARDS];
+int  cnk_table_initialized = 0;
+
+long cnk(int n, int k)
+{
+  if (n < k) return 0;
+  if (k == 0 || n == 1 || n == k) return 1;
+  if (n == 2 && k == 1) return 2;
+  if (!cnk_table_initialized) {
+    memset(cnk_table, 0, sizeof(cnk_table));
+    cnk_table_initialized = 1;
+  }
+  long res = cnk_table[n][k];
+  if (!res) {
+    res = cnk_table[n][k] = cnk(n-1, k) + cnk(n-1, k-1);
+  }
+  return res;
 }

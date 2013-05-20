@@ -1,6 +1,7 @@
 #include "hand_enum.h"
 #include "game.h"
 #include "helpers.h"
+#include <string.h>
 
 long cnk(int n, int k);
 

@@ -10,8 +10,8 @@
 #include <poker-eval/inlines/eval_omaha.h>
 
 #define BEGIN_EVAL(game) switch (game) {
-#define EVAL_GAME(game, code) case game_##game: { code; } break;
-#define END_EVAL() case game_NUMGAMES: break; /*default: error = 1; break;*/ }
+#define EVAL_GAME(game, code) case game_##game: { code; } break
+#define END_EVAL() default: error = 1; break; }
 
 #define ADD_CARD(c) if (index < sig->Length()) sig->Set(index++, Integer::NewFromUnsigned(c))
 #define LOW_CARD_RANK(c) ((c) == StdDeck_Rank_2 ? StdDeck_Rank_ACE : (c)-1)

@@ -7,7 +7,8 @@
         "src/game.cc",
         "src/game_eval.cc",
         "src/game_enum.cc",
-        "src/hand_enum.cc"
+        "src/hand_enum.cc",
+        "src/enum.c"
       ],
       "include_dirs": [
         "/usr/local/include/poker-eval",

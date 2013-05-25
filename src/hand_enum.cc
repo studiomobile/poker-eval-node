@@ -1,6 +1,7 @@
 #include "hand_enum.h"
 #include "game.h"
 #include "helpers.h"
+#include "enum.h"
 #include <string.h>
 
 long cnk(int n, int k);
@@ -17,13 +18,7 @@ Handle<Value> EnumHand(const Arguments& args)
   String::AsciiValue gameTypeStr(args[0]);
   enum_gameparams_t *game = findGame(*gameTypeStr);
   if (!game) TYPE_ERROR("Game type is invalid");
-  switch (game->game) {
-    case game_holdem:
-    case game_omaha:
-      break;
-    default:
-      TYPE_ERROR("Game type is unsupported");
-  }
+  enum_game_t game_type = game->game;
 
   int err = 0;
   int ordering = 0;
@@ -111,9 +106,9 @@ Handle<Value> EnumHand(const Arguments& args)
 
   DECK_MONTECARLO_PERMUTATIONS_D(StdDeck, _pockets, _players, _pocket_sizes, dead, handSamples, {
     if (boardSamples > 0) {
-      err = enumSample(game->game, pockets, board, _used, players, on_board, boardSamples, ordering, &intermediate);
+      err = stdEnumSample(game_type, pockets, board, _used, players, on_board, boardSamples, ordering, &intermediate);
     } else {
-      err = enumExhaustive(game->game, pockets, board, _used, players, on_board, ordering, &intermediate);
+      err = stdEnumExhaustive(game_type, pockets, board, _used, players, on_board, ordering, &intermediate);
     }
     if (err) TYPE_ERROR("Enumeration failed");
     result.ev[0] += intermediate.ev[0];

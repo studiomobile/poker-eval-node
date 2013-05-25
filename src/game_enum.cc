@@ -1,7 +1,7 @@
 #include "game_enum.h"
 #include "game.h"
 #include "helpers.h"
-
+#include "enum.h"
 
 Handle<Value> EnumGame(const Arguments& args)
 {
@@ -14,6 +14,7 @@ Handle<Value> EnumGame(const Arguments& args)
   String::AsciiValue gameTypeStr(args[0]);
   enum_gameparams_t *game = findGame(*gameTypeStr);
   if (!game) TYPE_ERROR("Game type is invalid");
+  enum_game_t game_type = game->game;
 
   StdDeck_CardMask dead;
   StdDeck_CardMask board;
@@ -71,9 +72,9 @@ Handle<Value> EnumGame(const Arguments& args)
   if (on_board > game->maxboard) TYPE_ERROR("Too many cards on board");
 
   if (samples > 0 && on_board < game->maxboard) {
-    err = enumSample(game->game, pockets, board, dead, _pockets->Length(), on_board, samples, ordering, &result);
+    err = stdEnumSample(game_type, pockets, board, dead, _pockets->Length(), on_board, samples, ordering, &result);
   } else {
-    err = enumExhaustive(game->game, pockets, board, dead, _pockets->Length(), on_board, ordering, &result);
+    err = stdEnumExhaustive(game_type, pockets, board, dead, _pockets->Length(), on_board, ordering, &result);
   }
   if (err) TYPE_ERROR("Enumeration failed");
 

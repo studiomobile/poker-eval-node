@@ -11,6 +11,7 @@ function testEnumGame(type, deck, nplayers, inHand, onBoard, samples) {
   for (var i = 0; i < nplayers; i++) {
     players.push(deck.splice(0, inHand));
   }
+  if (samples == null) samples = 100000;
   var result = lib.enumGame(type, players, board, {samples:samples});
   for (var i = result.length - 1; i >= 0; i--) {
     var hand = new lib.Hand(players[i], board);
@@ -23,17 +24,17 @@ function testEnumGame(type, deck, nplayers, inHand, onBoard, samples) {
 }
 
 function testEvalGame(type, deck, nplayers, inHand, onBoard) {
+  function fillInfo(info) {
+    if (!info) return;
+    if (info.type != null) info.type = lib.Hand.Types[info.type]
+    if (info.sig) info.sig = info.sig.map(function(rank) { return lib.Card.NRANKS[rank]; }).join('');
+  }
   var players = []
     , board = deck.splice(0, onBoard)
   for (var i = 0; i < nplayers; i++) {
     players.push(deck.splice(0, inHand));
   }
   result = lib.evalGame(type, players, board);
-  function fillInfo(info) {
-    if (!info) return;
-    if (info.type != null) info.type = lib.Hand.Types[info.type]
-    if (info.sig) info.sig = info.sig.map(function(rank) { return lib.Card.NRANKS[rank]; }).join('');
-  }
   for (var i = result.length - 1; i >= 0; i--) {
     result[i].cards = players[i].join(', ');
     fillInfo(result[i].hi);
@@ -44,15 +45,19 @@ function testEvalGame(type, deck, nplayers, inHand, onBoard) {
 }
 
 
-function testEvalHand(type, deck, nplayers, inHand, onBoard) {
+function testEnumHand(type, deck, nplayers, inHand, onBoard) {
   var result = []
     , board = deck.splice(0, onBoard)
     , hand = deck.splice(0, inHand)
     , res = lib.enumHand(type, hand, board, nplayers)
-  res.hand  = hand.join(', ');
+  var h = new lib.Hand(hand, board);
+  h.type = lib.Hand.Types[h.type];
+  h.cards = hand.join(', ');
+  res.hand  = h;
   res.board = board.join(', ');
   res.players = nplayers;
   return res;
 }
 
-console.log(testEvalHand('holdem', newDeck(), Number(process.argv[2] || 2), 2, Number(process.argv[3] || 3)));
+console.log(testEnumHand('5draw', newDeck(), Number(process.argv[2] || 2), 5, 0));
+// console.log(testEnumGame('5draw', newDeck(), Number(process.argv[2] || 2), 5, 0));

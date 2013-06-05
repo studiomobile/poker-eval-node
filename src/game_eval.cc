@@ -32,9 +32,9 @@ Handle<Value> EvalGame(const Arguments& args)
   uint onBoard = 0;
 
   if (gameInfo->maxboard > 0) {
-    if (args.Length() < 3 || !args[2]->IsArray())  TYPE_ERROR("Please provide array of cards on board as third argument");
+    if (args.Length() < 3 || !args[2]->IsArray()) TYPE_ERROR("Please provide array of cards on board as third argument");
     Local<Array> _board = Local<Array>::Cast(args[2]);
-    if (_board->Length() != (uint)gameInfo->maxboard) TYPE_ERROR("Wrong number of cards on board");
+    if (_board->Length() > (uint)gameInfo->maxboard) TYPE_ERROR("Wrong number of cards on board");
     READ_CARD_MASK(_board, board, onBoard);
   }
 

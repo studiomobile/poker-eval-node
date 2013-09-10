@@ -6,6 +6,7 @@
         "src/wrapper.cc"
       ],
       "include_dirs": [
+        "/usr/local/include",
         "/usr/local/include/poker-eval",
         "/usr/include/poker-eval"
       ],

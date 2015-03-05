@@ -38,35 +38,36 @@ enum_gameparams_t* findGame(const char *gameId)
   return NULL;
 }
 
-Handle<Value> KnownGames(const Arguments& args)
+NAN_METHOD(KnownGames)
 {
-  HandleScope scope;
+  NanScope();
   size_t totalGames = sizeof(knownGames)/sizeof(knownGames[0]);
 
-  Handle<String> typeStr    = String::NewSymbol("type");
-  Handle<String> nameStr    = String::NewSymbol("name");
-  Handle<String> hiStr      = String::NewSymbol("hi");
-  Handle<String> loStr      = String::NewSymbol("lo");
-  Handle<String> boardStr   = String::NewSymbol("board");
-  Handle<String> minHandStr = String::NewSymbol("minHand");
-  Handle<String> maxHandStr = String::NewSymbol("maxHand");
+  Handle<String> typeStr    = NanNew<String>("type");
+  Handle<String> nameStr    = NanNew<String>("name");
+  Handle<String> hiStr      = NanNew<String>("hi");
+  Handle<String> loStr      = NanNew<String>("lo");
+  Handle<String> boardStr   = NanNew<String>("board");
+  Handle<String> minHandStr = NanNew<String>("minHand");
+  Handle<String> maxHandStr = NanNew<String>("maxHand");
 
-  Handle<Array> array = Array::New(totalGames);
+  Handle<Array> array = NanNew<Array>(totalGames);
   for (size_t i = 0; i < totalGames; ++i)
   {
     known_game_t game = knownGames[i];
     enum_gameparams_t *params = enumGameParams(game.id);
 
-    Handle<Object> info = Object::New();
+    Handle<Object> info = NanNew<Object>();
     array->Set(i, info);
 
-    info->Set(typeStr,    String::New(game.type));
-    info->Set(nameStr,    String::New(params->name));
-    info->Set(hiStr,      Boolean::New(params->hashipot));
-    info->Set(loStr,      Boolean::New(params->haslopot));
-    info->Set(boardStr,   Integer::New(params->maxboard));
-    info->Set(minHandStr, Integer::New(params->minpocket));
-    info->Set(maxHandStr, Integer::New(params->maxpocket));
+    info->Set(typeStr,    NanNew<String>(game.type));
+    info->Set(nameStr,    NanNew<String>(params->name));
+    info->Set(hiStr,      NanNew<Boolean>(params->hashipot));
+    info->Set(loStr,      NanNew<Boolean>(params->haslopot));
+    info->Set(boardStr,   NanNew<Integer>(params->maxboard));
+    info->Set(minHandStr, NanNew<Integer>(params->minpocket));
+    info->Set(maxHandStr, NanNew<Integer>(params->maxpocket));
   }
-  return scope.Close(array);
+
+  NanReturnValue(array);
 }

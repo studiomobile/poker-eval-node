@@ -11,6 +11,7 @@
         "src/enum.c"
       ],
       "include_dirs": [
+        "<!(node -e \"require('nan')\")",
         "/usr/local/include",
         "/usr/local/include/poker-eval",
         "/usr/include/poker-eval"

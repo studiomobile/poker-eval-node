@@ -13,17 +13,17 @@
 #define EVAL_GAME(game, code) case game_##game: { code; } break
 #define END_EVAL() default: error = 1; break; }
 
-#define ADD_CARD(c) if (index < sig->Length()) sig->Set(index++, Integer::NewFromUnsigned(c))
+#define ADD_CARD(c) if (index < sig->Length()) sig->Set(index++, NanNew<Integer>(c))
 #define LOW_CARD_RANK(c) ((c) == StdDeck_Rank_2 ? StdDeck_Rank_ACE : (c)-1)
 
 
-Handle<Value> EvalGame(const Arguments& args)
+NAN_METHOD(EvalGame)
 {
-  HandleScope scope;
+  NanScope();
   if (args.Length() < 1 || !args[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
   if (args.Length() < 2 || !args[1]->IsArray())  TYPE_ERROR("Please provide array of players cards as second argument");
 
-  String::AsciiValue gameTypeStr(args[0]);
+  NanAsciiString gameTypeStr(args[0]);
   enum_gameparams_t* gameInfo = findGame(*gameTypeStr);
   if (!gameInfo) TYPE_ERROR("Game type is invalid");
 
@@ -41,13 +41,13 @@ Handle<Value> EvalGame(const Arguments& args)
   Local<Array> hands = Local<Array>::Cast(args[1]);
   if (hands->Length() < 1) TYPE_ERROR("Please provide at least one player hand");
 
-  Local<String> hiStr   = String::NewSymbol("hi");
-  Local<String> loStr   = String::NewSymbol("lo");
-  Local<String> valStr  = String::NewSymbol("value");
-  Local<String> typeStr = String::NewSymbol("type");
-  Local<String> sigStr  = String::NewSymbol("sig");
+  Local<String> hiStr   = NanNew<String>("hi");
+  Local<String> loStr   = NanNew<String>("lo");
+  Local<String> valStr  = NanNew<String>("value");
+  Local<String> typeStr = NanNew<String>("type");
+  Local<String> sigStr  = NanNew<String>("sig");
 
-  Local<Array> results = Array::New(hands->Length());
+  Local<Array> results = NanNew<Array>(hands->Length());
   for (uint32_t i = 0; i < hands->Length(); ++i)
   {
     Local<Value> item = hands->Get(i);
@@ -88,44 +88,44 @@ Handle<Value> EvalGame(const Arguments& args)
 
     if (error) TYPE_ERROR("Hand evaluation failed");
 
-    Local<Object> result = Object::New();
+    Local<Object> result = NanNew<Object>();
 
     if (gameInfo->hashipot) {
-      Local<Object> hi = Object::New();
+      Local<Object> hi = NanNew<Object>();
       result->Set(hiStr, hi);
       uint htype = HandVal_HANDTYPE(hiVal);
       uint index = 0;
-      Local<Array> sig = Array::New(StdRules_nSigCards[htype]);
+      Local<Array> sig = NanNew<Array>(StdRules_nSigCards[htype]);
       ADD_CARD(HandVal_TOP_CARD(hiVal));
       ADD_CARD(HandVal_SECOND_CARD(hiVal));
       ADD_CARD(HandVal_THIRD_CARD(hiVal));
       ADD_CARD(HandVal_FOURTH_CARD(hiVal));
       ADD_CARD(HandVal_FIFTH_CARD(hiVal));
-      hi->Set(valStr,  Integer::NewFromUnsigned(hiVal));
-      hi->Set(typeStr, Integer::NewFromUnsigned(htype));
+      hi->Set(valStr,  NanNew<Integer>(hiVal));
+      hi->Set(typeStr, NanNew<Integer>(htype));
       hi->Set(sigStr,  sig);
     }
 
     if (gameInfo->haslopot) {
-      Local<Object> lo = Object::New();
+      Local<Object> lo = NanNew<Object>();
       result->Set(loStr, lo);
       if (loVal != LowHandVal_NOTHING) {
         uint index = 0;
-        Local<Array> sig = Array::New(StdRules_nSigCards[HandVal_HANDTYPE(loVal)]);
+        Local<Array> sig = NanNew<Array>(StdRules_nSigCards[HandVal_HANDTYPE(loVal)]);
         ADD_CARD(LOW_CARD_RANK(HandVal_TOP_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_SECOND_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_THIRD_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_FOURTH_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_FIFTH_CARD(loVal)));
-        lo->Set(valStr, Integer::NewFromUnsigned(loVal));
+        lo->Set(valStr, NanNew<Integer>(loVal));
         lo->Set(sigStr, sig);
       } else {
-        lo->Set(valStr, Integer::NewFromUnsigned(0));
+        lo->Set(valStr, NanNew<Integer>(0));
       }
     }
 
     results->Set(i, result);
   }
 
-  return scope.Close(results);
+  NanReturnValue(results);
 }

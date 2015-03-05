@@ -2,24 +2,24 @@
     "author": "Sergey Martynov"
   , "name": "poker-eval"
   , "description": "Node.js wrapper for poker-eval library"
-  , "version": "0.3.2"
+  , "version": "0.4.0"
   , "homepage": "https://github.com/martynovs/poker-eval-node"
   , "repository": {
       "type": "git"
     , "url": "git://github.com/martynovs/poker-eval-node.git"
   }
   , "main": "index.js"
-  , "dependencies": {}
-  , "devDependencies": {}
-  , "optionalDependencies": {}
+  , "dependencies": {
+    "nan": "latest"
+  }
   , "engines": {
-    "node": "*"
+    "node": ">= 0.10.x"
   }
   , "bin": {
     "poker-eval": "./bin/poker-eval"
   }
   , "scripts": {
-      "preinstall" : "node-gyp configure build"
+      "postinstall" : "node-gyp configure build"
     , "preuninstall" : "node-gyp clean"
   }
 }

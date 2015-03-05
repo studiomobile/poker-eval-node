@@ -3,6 +3,6 @@
 
 #include "includes.h"
 
-Handle<Value> EvalGame(const Arguments& args);
+NAN_METHOD(EvalGame);
 
 #endif // __GAME_EVAL_H__

@@ -3,15 +3,15 @@
 #include "helpers.h"
 #include "enum.h"
 
-Handle<Value> EnumGame(const Arguments& args)
+NAN_METHOD(EnumGame)
 {
-  HandleScope scope;
+  NanScope();
 
   if (args.Length() < 1 || !args[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
   if (args.Length() < 2 || !args[1]->IsArray())  TYPE_ERROR("Please provide player pockets as second argument");
   if (args.Length() < 3 || !args[2]->IsArray())  TYPE_ERROR("Please provide board cards as third argument");
 
-  String::AsciiValue gameTypeStr(args[0]);
+  NanAsciiString gameTypeStr(args[0]);
   enum_gameparams_t *game = findGame(*gameTypeStr);
   if (!game) TYPE_ERROR("Game type is invalid");
   enum_game_t game_type = game->game;
@@ -32,14 +32,14 @@ Handle<Value> EnumGame(const Arguments& args)
   for (uint i = 0; i < ENUM_MAXPLAYERS; ++i)
     StdDeck_CardMask_RESET(pockets[i]);
 
-  Local<String> deadStr    = String::NewSymbol("dead");
-  Local<String> samplesStr = String::NewSymbol("samples");
-  Local<String> equityStr  = String::NewSymbol("equity");
-  Local<String> hiStr      = String::NewSymbol("hi");
-  Local<String> loStr      = String::NewSymbol("lo");
-  Local<String> winStr     = String::NewSymbol("win");
-  Local<String> loseStr    = String::NewSymbol("lose");
-  Local<String> tieStr     = String::NewSymbol("tie");
+  Local<String> deadStr    = NanNew<String>("dead");
+  Local<String> samplesStr = NanNew<String>("samples");
+  Local<String> equityStr  = NanNew<String>("equity");
+  Local<String> hiStr      = NanNew<String>("hi");
+  Local<String> loStr      = NanNew<String>("lo");
+  Local<String> winStr     = NanNew<String>("win");
+  Local<String> loseStr    = NanNew<String>("lose");
+  Local<String> tieStr     = NanNew<String>("tie");
 
   if (args.Length() > 3 && args[3]->IsObject()) {
     Local<Object> opt = args[3]->ToObject();
@@ -78,31 +78,31 @@ Handle<Value> EnumGame(const Arguments& args)
   }
   if (err) TYPE_ERROR("Enumeration failed");
 
-  Local<Array> results = Array::New(result.nplayers);
-  Local<Integer> samplesNum = Integer::NewFromUnsigned(result.nsamples);
+  Local<Array> results = NanNew<Array>(result.nplayers);
+  Local<Integer> samplesNum = NanNew<Integer>(result.nsamples);
 
   for (uint i = 0; i < result.nplayers; ++i)
   {
-    Local<Object> info = Object::New();
+    Local<Object> info = NanNew<Object>();
     results->Set(i, info);
 
-    info->Set(equityStr, Number::New(result.ev[i] / result.nsamples));
+    info->Set(equityStr, NanNew<Number>(result.ev[i] / result.nsamples));
     if (game->hashipot) {
-      Local<Object> hi = Object::New();
+      Local<Object> hi = NanNew<Object>();
       info->Set(hiStr, hi);
-      hi->Set(winStr, Integer::NewFromUnsigned(result.nwinhi[i]));
-      hi->Set(tieStr, Integer::NewFromUnsigned(result.ntiehi[i]));
-      hi->Set(loseStr, Integer::NewFromUnsigned(result.nlosehi[i]));
+      hi->Set(winStr, NanNew<Integer>(result.nwinhi[i]));
+      hi->Set(tieStr, NanNew<Integer>(result.ntiehi[i]));
+      hi->Set(loseStr, NanNew<Integer>(result.nlosehi[i]));
     }
     if (game->haslopot) {
-      Local<Object> lo = Object::New();
+      Local<Object> lo = NanNew<Object>();
       info->Set(loStr, lo);
-      lo->Set(winStr, Integer::NewFromUnsigned(result.nwinlo[i]));
-      lo->Set(tieStr, Integer::NewFromUnsigned(result.ntielo[i]));
-      lo->Set(loseStr, Integer::NewFromUnsigned(result.nloselo[i]));
+      lo->Set(winStr, NanNew<Integer>(result.nwinlo[i]));
+      lo->Set(tieStr, NanNew<Integer>(result.ntielo[i]));
+      lo->Set(loseStr, NanNew<Integer>(result.nloselo[i]));
     }
     info->Set(samplesStr, samplesNum);
   }
 
-  return scope.Close(results);
+  NanReturnValue(results);
 }

@@ -3,6 +3,6 @@
 
 #include "includes.h"
 
-Handle<Value> EnumHand(const Arguments& args);
+NAN_METHOD(EnumHand);
 
 #endif // __HAND_ENUM_H__

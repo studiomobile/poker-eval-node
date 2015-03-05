@@ -6,16 +6,16 @@
 
 long cnk(int n, int k);
 
-Handle<Value> EnumHand(const Arguments& args)
+NAN_METHOD(EnumHand)
 {
-  HandleScope scope;
+  NanScope();
 
   if (args.Length() < 1 || !args[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
   if (args.Length() < 2 || !args[1]->IsArray())  TYPE_ERROR("Please provide player hand as second argument");
   if (args.Length() < 3 || !args[2]->IsArray())  TYPE_ERROR("Please provide board cards as third argument");
   if (args.Length() < 4 || !args[3]->IsNumber()) TYPE_ERROR("Please provide number of other players");
 
-  String::AsciiValue gameTypeStr(args[0]);
+  NanAsciiString gameTypeStr(args[0]);
   enum_gameparams_t *game = findGame(*gameTypeStr);
   if (!game) TYPE_ERROR("Game type is invalid");
   enum_game_t game_type = game->game;
@@ -53,14 +53,14 @@ Handle<Value> EnumHand(const Arguments& args)
   if (players < 2) TYPE_ERROR("Should be at least 2 players in game");
   if (players > ENUM_MAXPLAYERS) TYPE_ERROR("Too many players in game");
 
-  Local<String> deadStr    = String::NewSymbol("dead");
-  Local<String> samplesStr = String::NewSymbol("samples");
-  Local<String> equityStr  = String::NewSymbol("equity");
-  Local<String> hiStr      = String::NewSymbol("hi");
-  Local<String> loStr      = String::NewSymbol("lo");
-  Local<String> winStr     = String::NewSymbol("win");
-  Local<String> loseStr    = String::NewSymbol("lose");
-  Local<String> tieStr     = String::NewSymbol("tie");
+  Local<String> deadStr    = NanNew<String>("dead");
+  Local<String> samplesStr = NanNew<String>("samples");
+  Local<String> equityStr  = NanNew<String>("equity");
+  Local<String> hiStr      = NanNew<String>("hi");
+  Local<String> loStr      = NanNew<String>("lo");
+  Local<String> winStr     = NanNew<String>("win");
+  Local<String> loseStr    = NanNew<String>("lose");
+  Local<String> tieStr     = NanNew<String>("tie");
 
   if (args.Length() > 4 && args[4]->IsObject()) {
     Local<Object> opt = args[4]->ToObject();
@@ -125,24 +125,25 @@ Handle<Value> EnumHand(const Arguments& args)
     }
   });
 
-  Local<Object> info = Object::New();
-  info->Set(equityStr, Number::New(result.ev[0] / result.nsamples));
-  info->Set(samplesStr, Integer::NewFromUnsigned(result.nsamples));
+  Local<Object> info = NanNew<Object>();
+  info->Set(equityStr, NanNew<Number>(result.ev[0] / result.nsamples));
+  info->Set(samplesStr, NanNew<Integer>(result.nsamples));
   if (game->hashipot) {
-    Local<Object> hi = Object::New();
+    Local<Object> hi = NanNew<Object>();
     info->Set(hiStr, hi);
-    hi->Set(winStr, Integer::NewFromUnsigned(result.nwinhi[0]));
-    hi->Set(tieStr, Integer::NewFromUnsigned(result.ntiehi[0]));
-    hi->Set(loseStr, Integer::NewFromUnsigned(result.nlosehi[0]));
+    hi->Set(winStr, NanNew<Integer>(result.nwinhi[0]));
+    hi->Set(tieStr, NanNew<Integer>(result.ntiehi[0]));
+    hi->Set(loseStr, NanNew<Integer>(result.nlosehi[0]));
   }
   if (game->haslopot) {
-    Local<Object> lo = Object::New();
+    Local<Object> lo = NanNew<Object>();
     info->Set(loStr, lo);
-    lo->Set(winStr, Integer::NewFromUnsigned(result.nwinlo[0]));
-    lo->Set(tieStr, Integer::NewFromUnsigned(result.ntielo[0]));
-    lo->Set(loseStr, Integer::NewFromUnsigned(result.nloselo[0]));
+    lo->Set(winStr, NanNew<Integer>(result.nwinlo[0]));
+    lo->Set(tieStr, NanNew<Integer>(result.ntielo[0]));
+    lo->Set(loseStr, NanNew<Integer>(result.nloselo[0]));
   }
-  return scope.Close(info);
+
+  NanReturnValue(info);
 }
 
 

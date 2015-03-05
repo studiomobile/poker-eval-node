@@ -3,6 +3,6 @@
 
 #include "includes.h"
 
-Handle<Value> EnumGame(const Arguments& args);
+NAN_METHOD(EnumGame);
 
 #endif // __GAME_ENUM_H__

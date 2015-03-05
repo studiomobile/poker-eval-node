@@ -2,6 +2,7 @@
 #define __INCLUDES_H__
 
 #include <node.h>
+#include <nan.h>
 #include <v8.h>
 #include <stdint.h>
 

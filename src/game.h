@@ -5,6 +5,6 @@
 
 enum_gameparams_t* findGame(const char *gameId);
 
-Handle<Value> KnownGames(const Arguments& args);
+NAN_METHOD(KnownGames);
 
 #endif // __GAME_H__

@@ -40,34 +40,34 @@ enum_gameparams_t* findGame(const char *gameId)
 
 NAN_METHOD(KnownGames)
 {
-  NanScope();
+  Nan::HandleScope scope;
   size_t totalGames = sizeof(knownGames)/sizeof(knownGames[0]);
 
-  Handle<String> typeStr    = NanNew<String>("type");
-  Handle<String> nameStr    = NanNew<String>("name");
-  Handle<String> hiStr      = NanNew<String>("hi");
-  Handle<String> loStr      = NanNew<String>("lo");
-  Handle<String> boardStr   = NanNew<String>("board");
-  Handle<String> minHandStr = NanNew<String>("minHand");
-  Handle<String> maxHandStr = NanNew<String>("maxHand");
+  Local<String> typeStr    = Nan::New<String>("type").ToLocalChecked();
+  Local<String> nameStr    = Nan::New<String>("name").ToLocalChecked();
+  Local<String> hiStr      = Nan::New<String>("hi").ToLocalChecked();
+  Local<String> loStr      = Nan::New<String>("lo").ToLocalChecked();
+  Local<String> boardStr   = Nan::New<String>("board").ToLocalChecked();
+  Local<String> minHandStr = Nan::New<String>("minHand").ToLocalChecked();
+  Local<String> maxHandStr = Nan::New<String>("maxHand").ToLocalChecked();
 
-  Handle<Array> array = NanNew<Array>(totalGames);
+  Local<Array> array = Nan::New<Array>(totalGames);
   for (size_t i = 0; i < totalGames; ++i)
   {
     known_game_t game = knownGames[i];
     enum_gameparams_t *params = enumGameParams(game.id);
 
-    Handle<Object> info = NanNew<Object>();
-    array->Set(i, info);
+    Local<Object> info = Nan::New<Object>();
+    Nan::Set(array, i, info);
 
-    info->Set(typeStr,    NanNew<String>(game.type));
-    info->Set(nameStr,    NanNew<String>(params->name));
-    info->Set(hiStr,      NanNew<Boolean>(params->hashipot));
-    info->Set(loStr,      NanNew<Boolean>(params->haslopot));
-    info->Set(boardStr,   NanNew<Integer>(params->maxboard));
-    info->Set(minHandStr, NanNew<Integer>(params->minpocket));
-    info->Set(maxHandStr, NanNew<Integer>(params->maxpocket));
+    Nan::Set(info, typeStr,    Nan::New<String>(game.type).ToLocalChecked());
+    Nan::Set(info, nameStr,    Nan::New<String>(params->name).ToLocalChecked());
+    Nan::Set(info, hiStr,      Nan::New<Boolean>(params->hashipot));
+    Nan::Set(info, loStr,      Nan::New<Boolean>(params->haslopot));
+    Nan::Set(info, boardStr,   Nan::New<Integer>(params->maxboard));
+    Nan::Set(info, minHandStr, Nan::New<Integer>(params->minpocket));
+    Nan::Set(info, maxHandStr, Nan::New<Integer>(params->maxpocket));
   }
 
-  NanReturnValue(array);
+  info.GetReturnValue().Set(array);
 }

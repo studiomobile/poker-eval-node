@@ -13,17 +13,17 @@
 #define EVAL_GAME(game, code) case game_##game: { code; } break
 #define END_EVAL() default: error = 1; break; }
 
-#define ADD_CARD(c) if (index < sig->Length()) sig->Set(index++, NanNew<Integer>(c))
+#define ADD_CARD(c) if (index < sig->Length()) Nan::Set(sig, index++, Nan::New<Integer>(c))
 #define LOW_CARD_RANK(c) ((c) == StdDeck_Rank_2 ? StdDeck_Rank_ACE : (c)-1)
 
 
 NAN_METHOD(EvalGame)
 {
-  NanScope();
-  if (args.Length() < 1 || !args[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
-  if (args.Length() < 2 || !args[1]->IsArray())  TYPE_ERROR("Please provide array of players cards as second argument");
+  Nan::HandleScope scope;
+  if (info.Length() < 1 || !info[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
+  if (info.Length() < 2 || !info[1]->IsArray())  TYPE_ERROR("Please provide array of players cards as second argument");
 
-  NanAsciiString gameTypeStr(args[0]);
+  Nan::Utf8String gameTypeStr(info[0]);
   enum_gameparams_t* gameInfo = findGame(*gameTypeStr);
   if (!gameInfo) TYPE_ERROR("Game type is invalid");
 
@@ -32,22 +32,22 @@ NAN_METHOD(EvalGame)
   uint onBoard = 0;
 
   if (gameInfo->maxboard > 0) {
-    if (args.Length() < 3 || !args[2]->IsArray()) TYPE_ERROR("Please provide array of cards on board as third argument");
-    Local<Array> _board = Local<Array>::Cast(args[2]);
+    if (info.Length() < 3 || !info[2]->IsArray()) TYPE_ERROR("Please provide array of cards on board as third argument");
+    Local<Array> _board = Local<Array>::Cast(info[2]);
     if (_board->Length() > (uint)gameInfo->maxboard) TYPE_ERROR("Wrong number of cards on board");
     READ_CARD_MASK(_board, board, onBoard);
   }
 
-  Local<Array> hands = Local<Array>::Cast(args[1]);
+  Local<Array> hands = Local<Array>::Cast(info[1]);
   if (hands->Length() < 1) TYPE_ERROR("Please provide at least one player hand");
 
-  Local<String> hiStr   = NanNew<String>("hi");
-  Local<String> loStr   = NanNew<String>("lo");
-  Local<String> valStr  = NanNew<String>("value");
-  Local<String> typeStr = NanNew<String>("type");
-  Local<String> sigStr  = NanNew<String>("sig");
+  Local<String> hiStr   = Nan::New<String>("hi").ToLocalChecked();
+  Local<String> loStr   = Nan::New<String>("lo").ToLocalChecked();
+  Local<String> valStr  = Nan::New<String>("value").ToLocalChecked();
+  Local<String> typeStr = Nan::New<String>("type").ToLocalChecked();
+  Local<String> sigStr  = Nan::New<String>("sig").ToLocalChecked();
 
-  Local<Array> results = NanNew<Array>(hands->Length());
+  Local<Array> results = Nan::New<Array>(hands->Length());
   for (uint32_t i = 0; i < hands->Length(); ++i)
   {
     Local<Value> item = hands->Get(i);
@@ -88,44 +88,44 @@ NAN_METHOD(EvalGame)
 
     if (error) TYPE_ERROR("Hand evaluation failed");
 
-    Local<Object> result = NanNew<Object>();
+    Local<Object> result = Nan::New<Object>();
 
     if (gameInfo->hashipot) {
-      Local<Object> hi = NanNew<Object>();
-      result->Set(hiStr, hi);
+      Local<Object> hi = Nan::New<Object>();
+      Nan::Set(result, hiStr, hi);
       uint htype = HandVal_HANDTYPE(hiVal);
       uint index = 0;
-      Local<Array> sig = NanNew<Array>(StdRules_nSigCards[htype]);
+      Local<Array> sig = Nan::New<Array>(StdRules_nSigCards[htype]);
       ADD_CARD(HandVal_TOP_CARD(hiVal));
       ADD_CARD(HandVal_SECOND_CARD(hiVal));
       ADD_CARD(HandVal_THIRD_CARD(hiVal));
       ADD_CARD(HandVal_FOURTH_CARD(hiVal));
       ADD_CARD(HandVal_FIFTH_CARD(hiVal));
-      hi->Set(valStr,  NanNew<Integer>(hiVal));
-      hi->Set(typeStr, NanNew<Integer>(htype));
-      hi->Set(sigStr,  sig);
+      Nan::Set(hi, valStr,  Nan::New<Integer>(hiVal));
+      Nan::Set(hi, typeStr, Nan::New<Integer>(htype));
+      Nan::Set(hi, sigStr,  sig);
     }
 
     if (gameInfo->haslopot) {
-      Local<Object> lo = NanNew<Object>();
-      result->Set(loStr, lo);
+      Local<Object> lo = Nan::New<Object>();
+      Nan::Set(result, loStr, lo);
       if (loVal != LowHandVal_NOTHING) {
         uint index = 0;
-        Local<Array> sig = NanNew<Array>(StdRules_nSigCards[HandVal_HANDTYPE(loVal)]);
+        Local<Array> sig = Nan::New<Array>(StdRules_nSigCards[HandVal_HANDTYPE(loVal)]);
         ADD_CARD(LOW_CARD_RANK(HandVal_TOP_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_SECOND_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_THIRD_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_FOURTH_CARD(loVal)));
         ADD_CARD(LOW_CARD_RANK(HandVal_FIFTH_CARD(loVal)));
-        lo->Set(valStr, NanNew<Integer>(loVal));
-        lo->Set(sigStr, sig);
+        Nan::Set(lo, valStr, Nan::New<Integer>(loVal));
+        Nan::Set(lo, sigStr, sig);
       } else {
-        lo->Set(valStr, NanNew<Integer>(0));
+        Nan::Set(lo, valStr, Nan::New<Integer>(0));
       }
     }
 
-    results->Set(i, result);
+    Nan::Set(results, i, result);
   }
 
-  NanReturnValue(results);
+  info.GetReturnValue().Set(results);
 }

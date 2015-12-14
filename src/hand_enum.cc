@@ -8,14 +8,13 @@ long cnk(int n, int k);
 
 NAN_METHOD(EnumHand)
 {
-  NanScope();
+  Nan::HandleScope scope;
+  if (info.Length() < 1 || !info[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
+  if (info.Length() < 2 || !info[1]->IsArray())  TYPE_ERROR("Please provide player hand as second argument");
+  if (info.Length() < 3 || !info[2]->IsArray())  TYPE_ERROR("Please provide board cards as third argument");
+  if (info.Length() < 4 || !info[3]->IsNumber()) TYPE_ERROR("Please provide number of other players");
 
-  if (args.Length() < 1 || !args[0]->IsString()) TYPE_ERROR("Please provide game type as first argument");
-  if (args.Length() < 2 || !args[1]->IsArray())  TYPE_ERROR("Please provide player hand as second argument");
-  if (args.Length() < 3 || !args[2]->IsArray())  TYPE_ERROR("Please provide board cards as third argument");
-  if (args.Length() < 4 || !args[3]->IsNumber()) TYPE_ERROR("Please provide number of other players");
-
-  NanAsciiString gameTypeStr(args[0]);
+  Nan::Utf8String gameTypeStr(info[0]);
   enum_gameparams_t *game = findGame(*gameTypeStr);
   if (!game) TYPE_ERROR("Game type is invalid");
   enum_game_t game_type = game->game;
@@ -39,31 +38,31 @@ NAN_METHOD(EnumHand)
     pocket_sizes[i] = game->maxpocket;
   }
 
-  Local<Array> pocket = Local<Array>::Cast(args[1]);
+  Local<Array> pocket = Local<Array>::Cast(info[1]);
   READ_CARD_MASK_WITH_COLLECTOR(pocket, pockets[0], dead, in_hand);
   if (in_hand < game->minpocket) TYPE_ERROR("Too few cards in hand");
   if (in_hand > game->maxpocket) TYPE_ERROR("Too many cards in hand");
   pocket_sizes[0] = game->maxpocket - in_hand;
 
-  Local<Array> _board = Local<Array>::Cast(args[2]);
+  Local<Array> _board = Local<Array>::Cast(info[2]);
   READ_CARD_MASK_WITH_COLLECTOR(_board, board, dead, on_board);
   if (on_board > game->maxboard) TYPE_ERROR("Too many cards on board");
 
-  players = args[3]->IntegerValue();
+  players = info[3]->IntegerValue();
   if (players < 2) TYPE_ERROR("Should be at least 2 players in game");
   if (players > ENUM_MAXPLAYERS) TYPE_ERROR("Too many players in game");
 
-  Local<String> deadStr    = NanNew<String>("dead");
-  Local<String> samplesStr = NanNew<String>("samples");
-  Local<String> equityStr  = NanNew<String>("equity");
-  Local<String> hiStr      = NanNew<String>("hi");
-  Local<String> loStr      = NanNew<String>("lo");
-  Local<String> winStr     = NanNew<String>("win");
-  Local<String> loseStr    = NanNew<String>("lose");
-  Local<String> tieStr     = NanNew<String>("tie");
+  Local<String> deadStr    = Nan::New<String>("dead").ToLocalChecked();
+  Local<String> samplesStr = Nan::New<String>("samples").ToLocalChecked();
+  Local<String> equityStr  = Nan::New<String>("equity").ToLocalChecked();
+  Local<String> hiStr      = Nan::New<String>("hi").ToLocalChecked();
+  Local<String> loStr      = Nan::New<String>("lo").ToLocalChecked();
+  Local<String> winStr     = Nan::New<String>("win").ToLocalChecked();
+  Local<String> loseStr    = Nan::New<String>("lose").ToLocalChecked();
+  Local<String> tieStr     = Nan::New<String>("tie").ToLocalChecked();
 
-  if (args.Length() > 4 && args[4]->IsObject()) {
-    Local<Object> opt = args[4]->ToObject();
+  if (info.Length() > 4 && info[4]->IsObject()) {
+    Local<Object> opt = info[4]->ToObject();
     if (opt->HasOwnProperty(deadStr)) {
       Local<Value> d = opt->Get(deadStr);
       if (!d->IsArray()) TYPE_ERROR("Dead cards should be array of cards");
@@ -96,8 +95,8 @@ NAN_METHOD(EnumHand)
     if (handSamples > samples) handSamples = samples;
   }
 
-  enum_result_t result;
-  enumResultClear(&result);
+  enum_result_t enumResult;
+  enumResultClear(&enumResult);
   enum_result_t intermediate;
 
   int _players = players - 1;
@@ -111,39 +110,39 @@ NAN_METHOD(EnumHand)
       err = stdEnumExhaustive(game_type, pockets, board, _used, players, on_board, ordering, &intermediate);
     }
     if (err) TYPE_ERROR("Enumeration failed");
-    result.ev[0] += intermediate.ev[0];
-    result.nsamples += intermediate.nsamples;
+    enumResult.ev[0] += intermediate.ev[0];
+    enumResult.nsamples += intermediate.nsamples;
     if (game->hashipot) {
-      result.nwinhi[0] += intermediate.nwinhi[0];
-      result.ntiehi[0] += intermediate.ntiehi[0];
-      result.nlosehi[0] += intermediate.nlosehi[0];
+      enumResult.nwinhi[0] += intermediate.nwinhi[0];
+      enumResult.ntiehi[0] += intermediate.ntiehi[0];
+      enumResult.nlosehi[0] += intermediate.nlosehi[0];
     }
     if (game->haslopot) {
-      result.nwinlo[0] += intermediate.nwinlo[0];
-      result.ntielo[0] += intermediate.ntielo[0];
-      result.nloselo[0] += intermediate.nloselo[0];
+      enumResult.nwinlo[0] += intermediate.nwinlo[0];
+      enumResult.ntielo[0] += intermediate.ntielo[0];
+      enumResult.nloselo[0] += intermediate.nloselo[0];
     }
   });
 
-  Local<Object> info = NanNew<Object>();
-  info->Set(equityStr, NanNew<Number>(result.ev[0] / result.nsamples));
-  info->Set(samplesStr, NanNew<Integer>(result.nsamples));
+  Local<Object> result = Nan::New<Object>();
+  Nan::Set(result, equityStr, Nan::New<Number>(enumResult.ev[0] / enumResult.nsamples));
+  Nan::Set(result, samplesStr, Nan::New<Integer>(enumResult.nsamples));
   if (game->hashipot) {
-    Local<Object> hi = NanNew<Object>();
-    info->Set(hiStr, hi);
-    hi->Set(winStr, NanNew<Integer>(result.nwinhi[0]));
-    hi->Set(tieStr, NanNew<Integer>(result.ntiehi[0]));
-    hi->Set(loseStr, NanNew<Integer>(result.nlosehi[0]));
+    Local<Object> hi = Nan::New<Object>();
+    Nan::Set(result, hiStr, hi);
+    Nan::Set(hi, winStr, Nan::New<Integer>(enumResult.nwinhi[0]));
+    Nan::Set(hi, tieStr, Nan::New<Integer>(enumResult.ntiehi[0]));
+    Nan::Set(hi, loseStr, Nan::New<Integer>(enumResult.nlosehi[0]));
   }
   if (game->haslopot) {
-    Local<Object> lo = NanNew<Object>();
-    info->Set(loStr, lo);
-    lo->Set(winStr, NanNew<Integer>(result.nwinlo[0]));
-    lo->Set(tieStr, NanNew<Integer>(result.ntielo[0]));
-    lo->Set(loseStr, NanNew<Integer>(result.nloselo[0]));
+    Local<Object> lo = Nan::New<Object>();
+    Nan::Set(result, loStr, lo);
+    Nan::Set(lo, winStr, Nan::New<Integer>(enumResult.nwinlo[0]));
+    Nan::Set(lo, tieStr, Nan::New<Integer>(enumResult.ntielo[0]));
+    Nan::Set(lo, loseStr, Nan::New<Integer>(enumResult.nloselo[0]));
   }
 
-  NanReturnValue(info);
+  info.GetReturnValue().Set(result);
 }
 
 

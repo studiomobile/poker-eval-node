@@ -251,7 +251,6 @@ stdEnumSample(enum_game_t game, StdDeck_CardMask pockets[],
               int npockets, int nboard, int niter, int orderflag,
               enum_result_t *result) {
   int i;
-  int numCards;
 
   switch (game) {
     case game_5draw:
